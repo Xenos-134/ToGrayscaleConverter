@@ -18,29 +18,40 @@ namespace ToGrayscaleConverter
             {
                 int x, y;
 
-                for (x = 0; x < image.Width; x++)
+                for (y = 0; y < image.Height; y++)
                 {
-                    for (y = 0; y < image.Height; y++)
+                    for (x = 0; x < image.Width; x++)
                     {
+                        Color newColor;
                         Color pixelColor = image.GetPixel(x, y);
-
                         int nc = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        Color newColor = Color.FromArgb(nc, nc, nc);
-
-
-
-
+                        if (nc < (255 * 0.7)) newColor = Color.FromArgb(0, 0, 0);
+                        else
+                        {
+                            newColor = Color.FromArgb(255, 255, 255);
+                        }
 
                         image.SetPixel(x, y, newColor); // Now greyscale
-                        Console.Write((float)nc/255 + " ");
+
+                        //if(x%50 == 0 && y % 50 == 0) Console.Write($"[{(1-(float)nc / 255).ToString("n1")}] ");
+                        if (x % 50 == 0 && y % 50 == 0)
+                        {
+                            if ((1 - (float)nc / 255) != 0) Console.Write("[x] ");
+                            else {
+                                Console.Write("[ ] ");
+                            }
+                        }
+
+
                     }
-                    Console.WriteLine();    
+                    if (y % 50 == 0)  Console.WriteLine();    
                 }
 
 
                 imageCoppy = image;   // imageCoppy is grayscale version of image
                 //System.IO.File.Move("C:/Users/artem/Desktop/", );
                 imageCoppy.Save("C:/Users/artem/Desktop/NA", System.Drawing.Imaging.ImageFormat.Png);
+                Console.ReadLine();
 
             }
 
