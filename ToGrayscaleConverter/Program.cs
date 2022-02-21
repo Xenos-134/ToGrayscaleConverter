@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -62,10 +63,18 @@ namespace ToGrayscaleConverter
                 Bitmap nImage = image.Clone(new System.Drawing.Rectangle(topLX, topLY, (botRX - topLX), (botRY - topLY)), image.PixelFormat);
 
 
-                imageCoppy = image;   // imageCoppy is grayscale version of image
-                
+                imageCoppy = nImage;   // imageCoppy is grayscale version of image
+
+                /*               var wrapMode = new ImageAttributes();
+                               wrapMode.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
+                               imageCoppy.*/
+
+
+                Image rImageCoppy = (Image)(new Bitmap(imageCoppy, new Size(500,700)));
+
                 imageCoppy.Save("C:/Users/artem/Desktop/NA", System.Drawing.Imaging.ImageFormat.Png);
-                nImage.Save("C:/Users/artem/Desktop/NAR", System.Drawing.Imaging.ImageFormat.Png);
+                //rImageCoppy.Save("C:/Users/artem/Desktop/NA", System.Drawing.Imaging.ImageFormat.Png);
+                rImageCoppy.Save("C:/Users/artem/Desktop/NAR", System.Drawing.Imaging.ImageFormat.Png);
                 Console.ReadLine();
 
             }
