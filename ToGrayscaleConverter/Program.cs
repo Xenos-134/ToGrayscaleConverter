@@ -31,8 +31,12 @@ namespace ToGrayscaleConverter
         {
             Console.WriteLine($"Largura {GetSize(wdt, 500)}| Altura {GetSize(hgt, 700)}");
 
+            
+            
             int bmWidth = GetSize(wdt, 500);
             int bmHeight = GetSize(hgt, 700);
+            int [] bitArray = new int[wdt*hgt];
+            Console.WriteLine($"Size of Array{bmHeight * bmHeight}");
 
             Bitmap imageCoppy = null;
 
@@ -102,12 +106,22 @@ namespace ToGrayscaleConverter
                     }
                 }
 
+                int c = 0;
                 for (int h = 0; h < hgt; h++)
                 {
                     for (int w = 0; w < wdt; w++)
                     {
-                        if (bitMapArr[h, w] == 1) Console.Write($"[X] ");
-                        else Console.Write($"[ ] ");
+                        if (bitMapArr[h, w] == 1)
+                        {
+                            Console.Write($"[X] ");
+                           bitArray[c++] = 1;
+                        }
+                        else {
+                            Console.Write($"[ ] ");
+                            ///Console.WriteLine(c);
+                           bitArray[c++] = 0;
+
+                        }
                     }
                     Console.WriteLine();
                 }
@@ -119,7 +133,7 @@ namespace ToGrayscaleConverter
         static void Main(string[] args)
         {
             //Test with some random params
-            ProcessImage(30,36, "C:/Users/artem/Desktop/AL.jpg");
+            ProcessImage(30,36, "C:/Users/artem/Desktop/AI/PreProcess/AL.jpg");
         }
     }
 }
