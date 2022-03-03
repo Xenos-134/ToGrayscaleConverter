@@ -2,10 +2,18 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+
+
+//Probelmas
+/*
+    Quando estamos a trabalhar com imagens de fundo preto a imagem nao vai ser recortada
+    >Tentar fazer treino com sem dar resize da imagem
+ */
 
 namespace ToGrayscaleConverter
 {
@@ -20,17 +28,21 @@ namespace ToGrayscaleConverter
         }
 
 
-        //Esta funcao depois tem que devolver uma 2d array
         /*
             Funcao que faz pre-procesamento de imagem:
                 >Converte tudo para duas cores.
                 >Faz recorte de retangulo onde a imagem esta.
                 >Faz resize para resolucao 500*700
+
+                NOTA: Por enquanto isto nao funciona para imagens de fundo preto devida a pobre resolucao
+                Isso requere calibrar o limiar  a partir da qual sera considerad oque o pixel esta 'Ativado'
          */
-        public static void ProcessImage(int wdt, int hgt, string imagePath)
+
+        public static async void ProcessImage(int wdt, int hgt, string imagePath, StreamWriter file, string label)
         {
             Console.WriteLine($"Largura {GetSize(wdt, 500)}| Altura {GetSize(hgt, 700)}");
-
+            string nameOfImage = imagePath.Split('/').Last();
+            Console.WriteLine($"Processing image: {nameOfImage}");
             
             
             int bmWidth = GetSize(wdt, 500);
@@ -40,12 +52,17 @@ namespace ToGrayscaleConverter
 
             Bitmap imageCoppy = null;
 
-            using (Bitmap image = new Bitmap(imagePath))
+            Bitmap l = new Bitmap(imagePath);
+
+            using (Bitmap image = l.Clone(new Rectangle(0, 0, l.Width, l.Height), System.Drawing.Imaging.PixelFormat.Format24bppRgb))
             {
                 int x, y;
                 int[,] bitMapArr = new int[hgt, wdt];
                 int topLX = Int32.MaxValue, botRX = 0;
                 int topLY = Int32.MaxValue, botRY = 0;
+
+
+
 
                 for (y = 0; y < image.Height; y++)
                 {
@@ -66,14 +83,8 @@ namespace ToGrayscaleConverter
                         }
 
 
-
-
                         if (nc < (255 * 0.7)) newColor = Color.FromArgb(0, 0, 0);
-                        else
-                        {
-                            newColor = Color.FromArgb(255, 255, 255);
-                        }
-
+                        else newColor = Color.FromArgb(255, 255, 255);
                         image.SetPixel(x, y, newColor); // Now greyscale
                     }
 
@@ -86,7 +97,7 @@ namespace ToGrayscaleConverter
                 Image rImageCoppy = (Image)(new Bitmap(imageCoppy, new Size(500, 700)));
 
                 Console.WriteLine($"Height:{rImageCoppy.Height}/ Width:{rImageCoppy.Width}");
-                rImageCoppy.Save($"{imagePath}BA.png", System.Drawing.Imaging.ImageFormat.Png);
+                //rImageCoppy.Save($"{imagePath}BA.png", System.Drawing.Imaging.ImageFormat.Png);
 
 
                 //Preenche 2d bitArray
@@ -106,34 +117,75 @@ namespace ToGrayscaleConverter
                     }
                 }
 
+
+                file.Write($"{label},");
+
                 int c = 0;
                 for (int h = 0; h < hgt; h++)
                 {
                     for (int w = 0; w < wdt; w++)
                     {
-                        if (bitMapArr[h, w] == 1)
+
+                       /* if (bitMapArr[h, w] == 1) Console.Write($"[X] ");
+                        else Console.Write($"[ ] ");*/
+
+
+                        if (c < (hgt * wdt-1))
                         {
-                            Console.Write($"[X] ");
-                           bitArray[c++] = 1;
+                            file.Write($"{bitMapArr[h, w]},");
+                            c++;
                         }
                         else {
-                            Console.Write($"[ ] ");
-                            ///Console.WriteLine(c);
-                           bitArray[c++] = 0;
+                            file.Write($"{bitMapArr[h, w]}");
 
+                            continue;
                         }
                     }
-                    Console.WriteLine();
+                    //Console.WriteLine();
                 }
+                file.Write(Environment.NewLine);
                 //Doesnt Allow Window to close
-                Console.ReadLine();
             }
         }
 
         static void Main(string[] args)
         {
+            int numData = 100; //numero de amostras de cada dataset
+            if (File.Exists("C:/Users/artem/Desktop/AI/PreProcess/Output.txt"))
+            {
+                File.Delete("C:/Users/artem/Desktop/AI/PreProcess/Output.txt");
+            }
+
+            StreamWriter outputFile = new StreamWriter("C:/Users/artem/Desktop/AI/PreProcess/Output.txt");
+
+
             //Test with some random params
-            ProcessImage(30,36, "C:/Users/artem/Desktop/AI/PreProcess/AL.jpg");
+            string path = "C:/Users/artem/Desktop/AI/PreProcess/trainingSet";
+            DirectoryInfo info = new DirectoryInfo(path);
+            DirectoryInfo[] directories = info.GetDirectories();
+
+            int ic;
+            foreach (var directory in directories)
+            {
+                ic = numData;
+                string label = directory.ToString(); // Label do ficheiro a ser classificado 
+                string itemsPath = System.IO.Path.Combine(path, directory.ToString());
+                
+                Console.WriteLine($"Folder: {itemsPath}");
+
+                DirectoryInfo dataDir = new DirectoryInfo(itemsPath);
+                FileInfo[] files = dataDir.GetFiles();
+                foreach (var file in files)
+                {
+                    if (ic-- < 0) continue;
+                    Console.WriteLine(file);
+                    ProcessImage(45, 45, itemsPath+"/"+file.Name, outputFile, label);
+                }
+
+            }
+            Console.WriteLine("Finished Processing all Images");
+            Console.ReadLine();
+
         }
     }
 }
