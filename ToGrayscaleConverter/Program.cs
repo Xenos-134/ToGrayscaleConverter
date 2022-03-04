@@ -19,6 +19,15 @@ namespace ToGrayscaleConverter
 {
     public class ExtractorProgram
     {
+        public class Command
+        { 
+            public string Type { get; set; }
+            public string Folder { get; set; }
+            public string InputName { get; set; }
+            public string OutputName { get; set; }
+            public int NumOfElm { get; set; }
+        }
+
 
         //Devolve dimensao de matriz binaria 
         public static int GetSize(int size, int resolution)
@@ -27,34 +36,38 @@ namespace ToGrayscaleConverter
             return ( resolution/ size);
         }
 
-
-        public static void Main(string[] args)
+        public static void ConvertSingle(Command command)
         {
-            int numData = 1000; //numero de amostras de cada dataset
-/*            if (File.Exists("C:/Users/artem/Desktop/AI/PreProcess/Output.txt"))
+            Console.WriteLine($"Convert Single {command.Type}");
+            using (StreamWriter outputFileTest = new StreamWriter($"C:/Users/artem/Desktop/AI/PreProcess/{command.InputName}.txt"))
             {
-                File.Delete("C:/Users/artem/Desktop/AI/PreProcess/Output.txt");
+                ExtractProperties($"C:/Users/artem/Desktop/AI/PreProcess/{command.InputName}.jpg", outputFileTest, null);
             }
-            StreamWriter outputFile = new StreamWriter("C:/Users/artem/Desktop/AI/PreProcess/Output.txt");*/
+        }
+
+        public static void ConvertAll(Command command)
+        {
+            int numData = 2000; //numero de amostras de cada dataset
+            Console.WriteLine($"Convert All {command.Folder} / {command.OutputName}");
+            if (File.Exists($"C:/Users/artem/Desktop/AI/PreProcess/{command.OutputName}.txt"))
+            {
+                File.Delete($"C:/Users/artem/Desktop/AI/PreProcess/{command.OutputName}.txt");
+            }
+            StreamWriter outputFile = new StreamWriter($"C:/Users/artem/Desktop/AI/PreProcess/{command.OutputName}.txt");
 
             //Test with some random params
-            string path = "C:/Users/artem/Desktop/AI/PreProcess/trainingSet";
+            string path = command.Folder;
             DirectoryInfo info = new DirectoryInfo(path);
             DirectoryInfo[] directories = info.GetDirectories();
 
-            using (StreamWriter outputFileTest = new StreamWriter("C:/Users/artem/Desktop/AI/PreProcess/testOutput.txt"))
-            {
-                ExtractProperties("C:/Users/artem/Desktop/AI/PreProcess/test.jpg", outputFileTest, "4");
-            }
-
 
             int ic;
-/*          foreach (var directory in directories)
+            foreach (var directory in directories)
             {
                 ic = numData;
                 string label = directory.ToString(); // Label do ficheiro a ser classificado 
                 string itemsPath = System.IO.Path.Combine(path, directory.ToString());
-                
+
                 Console.WriteLine($"Folder: {itemsPath}");
 
                 DirectoryInfo dataDir = new DirectoryInfo(itemsPath);
@@ -64,18 +77,53 @@ namespace ToGrayscaleConverter
                     if (ic-- < 0) continue;
                     ExtractProperties(itemsPath + "/" + file.Name, outputFile, label);
                 }
-            }*/
-
-
-
+            }
             Console.WriteLine("Finished Processing all Images");
-            Console.ReadLine();
 
         }
 
 
+        public static void Main(string[] args)
+        {
 
-        //Estamos a procesar iamgens de 28 por 28
+            while (true)
+            {
+                Console.Write("Introduza Commando: ");
+                string input = Console.ReadLine();
+                Command command = new Command();
+                command.Type = input.Split().First();
+                switch (command.Type)
+                {
+                    case "c": //Convets sigle element
+                        
+                        if (input.Split().Length == 2)
+                        {
+                            command.InputName = command.Type = input.Split()[1];
+                            ConvertSingle(command);
+                            continue;
+                        }
+                        Console.WriteLine("Numero de argumentos incorreto");
+                        continue;
+                    case "ca": //Converts all items inside of hte folder
+                        if (input.Split().Length == 3)
+                        {
+                            command.Folder = command.Type = input.Split()[1];
+                            command.OutputName = command.Type = input.Split()[2];
+                            ConvertAll(command);
+                            continue;
+                        }
+                        Console.WriteLine("Numero de argumentos incorreto");
+                        continue;
+                    case "exit": 
+                        break;
+                    default:
+                        Console.WriteLine("Comando desconhecido");
+                        continue;
+                }
+            }
+        }
+
+        //Estamos a procesar imagens de 28 por 28
         public static string ExtractProperties(string imagePath, StreamWriter file, string label)
         {
             string vector = "";
@@ -83,7 +131,10 @@ namespace ToGrayscaleConverter
             Console.WriteLine($"Label:{label}-Processind image:{imagePath.Split('/').Last()}");
             using (Bitmap image = new Bitmap(imagePath))
             {
-                file.Write($"{label},");
+                if (label != null)
+                {
+                    file.Write($"{label},");
+                }
                 int pixelValue;
                 int counter = 0;
                 for (int h = 0; h < image.Height; h++)

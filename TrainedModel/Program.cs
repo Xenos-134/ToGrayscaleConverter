@@ -15,10 +15,16 @@ namespace TrainedModel
     {
         static void Main(string[] args)
         {
-            using (StreamWriter outputFileTest = new StreamWriter("C:/Users/artem/Desktop/AI/PreProcess/testOutput.txt"))
+            while (true)
             {
-                string value2 = ToGrayscaleConverter.ExtractorProgram.ExtractProperties("C:/Users/artem/Desktop/AI/PreProcess/test.jpg", outputFileTest, "4");
-                Predict(value2);
+                Console.Write("Indique caminho para a imagem que pretende classificar: ");
+                string path = Console.ReadLine();
+                using (StreamWriter outputFileTest = new StreamWriter("C:/Users/artem/Desktop/AI/PreProcess/testOutput.txt"))
+                {
+                    string value2 = ToGrayscaleConverter.ExtractorProgram.ExtractProperties(path, outputFileTest, null);
+                    Predict(value2);
+                }
+
             }
         }
 
@@ -44,13 +50,7 @@ namespace TrainedModel
 
             // Make a single prediction on the sample data and print results
             var predictionResult = MLModel.Predict(model);
-
-            Console.WriteLine("Using model to make single prediction -- Comparing actual Col0 with predicted Col0 from sample data...\n\n");
-
-
-            Console.WriteLine($"\n\nPredicted Col0: {predictionResult.Prediction}\n\n");
-            Console.WriteLine("=============== End of process, hit any key to finish ===============");
-            Console.ReadKey();
+            Console.WriteLine($"Predicted Col0: {predictionResult.Prediction}\n\n");
         }
     }
 }
